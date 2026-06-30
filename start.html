@@ -1,0 +1,885 @@
+<!-- Библиотеки для скачивания PDF. Если они уже подключены на странице, эти строки можно удалить -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+  .fd-start-marking {
+    --fd-main: #77408C;
+    --fd-light: #EDE0F3;
+    --fd-white: #ffffff;
+    --fd-text: #24182B;
+    --fd-muted: #706177;
+    --fd-border: rgba(119, 64, 140, 0.18);
+    --fd-shadow: 0 14px 32px rgba(69, 35, 84, 0.16);
+
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 757px;
+    height: 690px;
+    margin: 28px auto;
+    font-family: "Inter", "Segoe UI", Arial, sans-serif;
+    color: var(--fd-text);
+  }
+
+  .fd-start-marking *,
+  .fd-start-marking *::before,
+  .fd-start-marking *::after {
+    box-sizing: border-box;
+  }
+
+  .fd-start-marking__inner {
+    height: 100%;
+    border-radius: 24px;
+    background: linear-gradient(135deg, #EDE0F3 0%, #FAF5FC 100%);
+    border: 1px solid rgba(119, 64, 140, 0.14);
+    box-shadow: var(--fd-shadow);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .fd-start-marking__header {
+    flex: 0 0 auto;
+    margin-bottom: 14px;
+  }
+
+  .fd-start-marking__badge {
+    display: inline-flex;
+    margin-bottom: 7px;
+    padding: 5px 11px;
+    border-radius: 999px;
+    background: rgba(119, 64, 140, 0.1);
+    color: var(--fd-main);
+    font-size: 12px;
+    line-height: 1.2;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .fd-start-marking__title {
+    margin: 0;
+    color: var(--fd-main);
+    font-size: 30px;
+    line-height: 1.12;
+    font-weight: 850;
+    letter-spacing: -0.03em;
+  }
+
+  .fd-start-marking__subtitle {
+    margin: 8px 0 0;
+    max-width: 650px;
+    color: var(--fd-muted);
+    font-size: 15px;
+    line-height: 1.4;
+  }
+
+  .fd-start-marking__tabs {
+    flex: 0 0 auto;
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
+  .fd-start-marking__tab {
+    flex: 0 0 auto;
+    appearance: none;
+    border: 1px solid rgba(119, 64, 140, 0.25);
+    background: var(--fd-white);
+    color: var(--fd-main);
+    border-radius: 999px;
+    padding: 9px 14px;
+    font: inherit;
+    font-size: 14px;
+    line-height: 1.2;
+    font-weight: 800;
+    cursor: pointer;
+  }
+
+  .fd-start-marking__tab:hover {
+    border-color: var(--fd-main);
+    background: #F5EDF9;
+  }
+
+  .fd-start-marking__tab--active {
+    background: var(--fd-main);
+    color: var(--fd-white);
+    border-color: var(--fd-main);
+  }
+
+  .fd-start-marking__progress-row {
+    flex: 0 0 auto;
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .fd-start-marking__progress {
+    flex: 1 1 auto;
+    padding: 9px 12px;
+    border-radius: 16px;
+    background: var(--fd-white);
+    border: 1px solid var(--fd-border);
+    color: var(--fd-main);
+    font-size: 13px;
+    line-height: 1.25;
+    font-weight: 800;
+  }
+
+  .fd-start-marking__panels {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .fd-start-marking__panel {
+    display: none;
+    height: 100%;
+  }
+
+  .fd-start-marking__panel--active {
+    display: block;
+  }
+
+  .fd-start-marking__card {
+    height: 100%;
+    background: var(--fd-white);
+    border-radius: 20px;
+    padding: 18px;
+    border: 1px solid var(--fd-border);
+    box-shadow: 0 8px 20px rgba(69, 35, 84, 0.07);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .fd-start-marking__card-head {
+    flex: 0 0 auto;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: flex-start;
+    margin-bottom: 12px;
+  }
+
+  .fd-start-marking__card-title {
+    margin: 0;
+    color: var(--fd-text);
+    font-size: 20px;
+    line-height: 1.25;
+    font-weight: 850;
+  }
+
+  .fd-start-marking__local-count {
+    flex: 0 0 auto;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(119, 64, 140, 0.1);
+    color: var(--fd-main);
+    font-size: 13px;
+    line-height: 1.2;
+    font-weight: 850;
+  }
+
+  .fd-start-marking__list {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    padding: 0;
+    margin: 0;
+  }
+
+  .fd-start-marking__item {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(119, 64, 140, 0.12);
+    cursor: pointer;
+  }
+
+  .fd-start-marking__item:last-child {
+    border-bottom: 0;
+  }
+
+  .fd-start-marking__checkbox {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .fd-start-marking__box {
+    flex: 0 0 auto;
+    width: 20px;
+    height: 20px;
+    margin-top: 1px;
+    border: 2px solid var(--fd-main);
+    border-radius: 6px;
+    background: var(--fd-white);
+    position: relative;
+  }
+
+  .fd-start-marking__checkbox:checked + .fd-start-marking__box {
+    background: var(--fd-main);
+    border-color: var(--fd-main);
+  }
+
+  .fd-start-marking__checkbox:checked + .fd-start-marking__box::after {
+    content: "";
+    position: absolute;
+    left: 5px;
+    top: 1px;
+    width: 7px;
+    height: 12px;
+    border: solid var(--fd-white);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+
+  .fd-start-marking__checkbox:focus-visible + .fd-start-marking__box {
+    outline: 3px solid rgba(119, 64, 140, 0.22);
+    outline-offset: 2px;
+  }
+
+  .fd-start-marking__text {
+    display: block;
+    color: var(--fd-text);
+    font-size: 14px;
+    line-height: 1.32;
+    font-weight: 500;
+  }
+
+  .fd-start-marking__checkbox:checked ~ .fd-start-marking__text {
+    color: var(--fd-muted);
+    text-decoration: line-through;
+    text-decoration-thickness: 1px;
+    text-decoration-color: rgba(119, 64, 140, 0.55);
+  }
+
+  .fd-start-marking__note {
+    flex: 0 0 auto;
+    margin: 12px 0 0;
+    padding: 10px 12px;
+    border-radius: 14px;
+    background: #F5EDF9;
+    color: var(--fd-muted);
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  .fd-start-marking__actions {
+    flex: 0 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 14px;
+  }
+
+  .fd-start-marking__button {
+    appearance: none;
+    border-radius: 14px;
+    padding: 12px 17px;
+    font: inherit;
+    font-size: 14px;
+    line-height: 1.2;
+    font-weight: 850;
+    cursor: pointer;
+    transition: transform 0.18s ease, opacity 0.18s ease;
+  }
+
+  .fd-start-marking__button:hover {
+    transform: translateY(-1px);
+    opacity: 0.92;
+  }
+
+  .fd-start-marking__button--primary {
+    border: 1px solid var(--fd-main);
+    background: var(--fd-main);
+    color: var(--fd-white);
+    box-shadow: 0 8px 18px rgba(119, 64, 140, 0.22);
+  }
+
+  .fd-start-marking__button--secondary {
+    border: 1px solid rgba(119, 64, 140, 0.3);
+    background: var(--fd-white);
+    color: var(--fd-main);
+  }
+
+  .fd-start-marking__pdf-source {
+    position: absolute;
+    left: -99999px;
+    top: 0;
+    width: 757px;
+    padding: 28px;
+    background: #ffffff;
+    color: #24182B;
+    font-family: "Inter", "Segoe UI", Arial, sans-serif;
+  }
+
+  .fd-start-marking__pdf-title {
+    margin: 0 0 8px;
+    color: #77408C;
+    font-size: 28px;
+    line-height: 1.15;
+    font-weight: 850;
+  }
+
+  .fd-start-marking__pdf-subtitle {
+    margin: 0 0 18px;
+    color: #706177;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+
+  .fd-start-marking__pdf-section {
+    margin: 0 0 18px;
+    padding: 16px;
+    border: 1px solid rgba(119, 64, 140, 0.2);
+    border-radius: 18px;
+    break-inside: avoid;
+  }
+
+  .fd-start-marking__pdf-section-title {
+    margin: 0 0 8px;
+    color: #77408C;
+    font-size: 19px;
+    line-height: 1.25;
+    font-weight: 850;
+  }
+
+  .fd-start-marking__pdf-count {
+    margin: 0 0 10px;
+    color: #706177;
+    font-size: 13px;
+    line-height: 1.3;
+    font-weight: 700;
+  }
+
+  .fd-start-marking__pdf-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .fd-start-marking__pdf-item {
+    display: flex;
+    gap: 8px;
+    margin: 0 0 7px;
+    font-size: 13px;
+    line-height: 1.35;
+  }
+
+  .fd-start-marking__pdf-mark {
+    flex: 0 0 auto;
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid #77408C;
+    border-radius: 5px;
+    color: #77408C;
+    text-align: center;
+    font-size: 13px;
+    line-height: 16px;
+    font-weight: 850;
+  }
+
+  .fd-start-marking__pdf-note {
+    margin: 10px 0 0;
+    padding: 9px 11px;
+    border-radius: 12px;
+    background: #F5EDF9;
+    color: #706177;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  @media (max-width: 700px) {
+    .fd-start-marking {
+      max-width: 100%;
+      height: auto;
+      min-height: 690px;
+      margin: 22px 0;
+    }
+
+    .fd-start-marking__inner {
+      min-height: 690px;
+      padding: 16px;
+      border-radius: 22px;
+    }
+
+    .fd-start-marking__title {
+      font-size: 24px;
+    }
+
+    .fd-start-marking__subtitle {
+      font-size: 14px;
+    }
+
+    .fd-start-marking__tabs {
+      gap: 7px;
+    }
+
+    .fd-start-marking__tab {
+      padding: 8px 12px;
+      font-size: 13px;
+    }
+
+    .fd-start-marking__progress-row {
+      flex-direction: column;
+    }
+
+    .fd-start-marking__card {
+      padding: 15px;
+      border-radius: 18px;
+    }
+
+    .fd-start-marking__card-head {
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .fd-start-marking__card-title {
+      font-size: 18px;
+    }
+
+    .fd-start-marking__item {
+      padding: 7px 0;
+    }
+
+    .fd-start-marking__text {
+      font-size: 13px;
+    }
+
+    .fd-start-marking__actions {
+      flex-direction: column;
+    }
+
+    .fd-start-marking__button {
+      width: 100%;
+    }
+  }
+
+  @media print {
+    .fd-start-marking__inner {
+      display: none;
+    }
+
+    .fd-start-marking__pdf-source {
+      position: static;
+      left: auto;
+      width: 100%;
+      padding: 0;
+    }
+  }
+</style>
+
+<section class="fd-start-marking" data-fd-start-marking>
+  <div class="fd-start-marking__inner">
+    <div class="fd-start-marking__header">
+      <div class="fd-start-marking__badge">Чек-листы</div>
+      <h2 class="fd-start-marking__title">Первые шаги к маркировке</h2>
+      <p class="fd-start-marking__subtitle">
+        Отметьте, что уже готово к работе с маркировкой, или скачайте чек-листы одним PDF-файлом.
+      </p>
+    </div>
+
+    <div class="fd-start-marking__tabs" role="tablist" aria-label="Разделы чек-листов" data-fd-tabs></div>
+
+    <div class="fd-start-marking__progress-row" aria-live="polite">
+      <div class="fd-start-marking__progress" data-fd-local-count>Выполнено: 0 из 0</div>
+      <div class="fd-start-marking__progress" data-fd-total-count>Всего выполнено: 0 из 0</div>
+    </div>
+
+    <div class="fd-start-marking__panels" data-fd-panels></div>
+
+    <div class="fd-start-marking__actions">
+      <button class="fd-start-marking__button fd-start-marking__button--secondary" type="button" data-fd-reset>
+        Сбросить отметки
+      </button>
+      <button class="fd-start-marking__button fd-start-marking__button--primary" type="button" data-fd-download>
+        Скачать PDF
+      </button>
+    </div>
+  </div>
+
+  <div class="fd-start-marking__pdf-source" data-fd-pdf-source aria-hidden="true"></div>
+</section>
+
+<script>
+  (function () {
+    const fdStartMarkingData = [
+      {
+        tab: "Подготовка",
+        title: "Что подготовить до запуска маркировки",
+        note: "",
+        items: [
+          "Обновите 1С:Бухгалтерию до актуальной версии",
+          "Зарегистрируйте компанию в системе «Честный ЗНАК»",
+          "Проверьте, что у ответственных сотрудников есть усиленная квалифицированная электронная подпись",
+          "Настройте электронный документооборот для обмена с контрагентами",
+          "Подключите компанию к информационной системе мониторинга продукции (ИС МП)",
+          "Проверьте, что номенклатура заведена корректно",
+          "Заполните GTIN и другие обязательные сведения по маркируемым товарам",
+          "Подготовьте 2D-сканер для считывания кодов Data Matrix",
+          "Проверьте онлайн-кассу, если компания продает маркированные товары в розницу",
+          "Настройте доступ к СУЗ, если компания самостоятельно заказывает коды маркировки",
+          "Подготовьте локальный модуль «Честный ЗНАК», если он нужен для разрешительного режима"
+        ]
+      },
+      {
+        tab: "1С",
+        title: "Настройка 1С",
+        note: "В разных релизах 1С названия пунктов меню могут отличаться. При настройке ориентируйтесь на конкретную версию конфигурации и интерфейс пользователя.",
+        items: [
+          "Откройте раздел «Администрирование»",
+          "Перейдите к настройкам интеграции с ИС МП",
+          "Включите товарные группы, с которыми работает компания",
+          "Настройте подключение к системе маркировки",
+          "Проверьте, что электронная подпись работает корректно",
+          "Настройте сертификаты подписания и шифрования",
+          "Подключите и проверьте ЭДО",
+          "Проверьте номенклатуру и карточки маркируемых товаров",
+          "Подключите оборудование: сканеры, кассу или ТСД",
+          "Проведите тестовую операцию и убедитесь, что данные проходят без ошибок"
+        ]
+      },
+      {
+        tab: "ЭДО",
+        title: "Настройка ЭДО",
+        note: "",
+        items: [
+          "Проверьте подключение оператора ЭДО",
+          "Убедитесь, что сертификаты электронной подписи действуют и корректно подключены",
+          "Проверьте обмен документами с контрагентами",
+          "Протестируйте получение входящих УПД",
+          "Протестируйте передачу исходящих УПД",
+          "Опишите порядок работы с расхождениями",
+          "Проверьте, что коды маркировки корректно передаются в электронных документах"
+        ]
+      },
+      {
+        tab: "Приемка товара",
+        title: "Приемка маркированных товаров в 1С",
+        note: "",
+        items: [
+          "Получите в 1С электронный УПД от поставщика",
+          "Откройте документ поступления",
+          "Сверьте товары, количество и суммы",
+          "Перейдите к проверке кодов маркировки",
+          "Отсканируйте коды или сопоставьте их с данными документа",
+          "Подтвердите приемку, если расхождений нет",
+          "Оформите расхождения, если данные по товару или кодам не совпали"
+        ]
+      },
+      {
+        tab: "Ввод в оборот",
+        title: "Ввод маркированного товара в оборот",
+        note: "",
+        items: [
+          "Закажите коды маркировки",
+          "Распечатайте коды и нанесите их на товар",
+          "Оформите в 1С документ «Маркировка товаров ИС МП»",
+          "Проверьте нанесенные коды",
+          "Передайте сведения в ИС МП",
+          "Убедитесь, что товар доступен для дальнейшего оборота"
+        ]
+      }
+    ];
+
+    const blocks = document.querySelectorAll("[data-fd-start-marking]");
+    if (!blocks.length) return;
+
+    blocks.forEach(function (block, blockIndex) {
+      const tabsNode = block.querySelector("[data-fd-tabs]");
+      const panelsNode = block.querySelector("[data-fd-panels]");
+      const localCountNode = block.querySelector("[data-fd-local-count]");
+      const totalCountNode = block.querySelector("[data-fd-total-count]");
+      const resetButton = block.querySelector("[data-fd-reset]");
+      const downloadButton = block.querySelector("[data-fd-download]");
+      const pdfSource = block.querySelector("[data-fd-pdf-source]");
+
+      let activeTab = 0;
+
+      function getCheckboxes() {
+        return Array.from(block.querySelectorAll(".fd-start-marking__checkbox"));
+      }
+
+      function getPanelCheckboxes(index) {
+        return Array.from(block.querySelectorAll('[data-fd-panel-index="' + index + '"] .fd-start-marking__checkbox'));
+      }
+
+      function updateCounts() {
+        const activeCheckboxes = getPanelCheckboxes(activeTab);
+        const activeDone = activeCheckboxes.filter(function (checkbox) {
+          return checkbox.checked;
+        }).length;
+
+        const allCheckboxes = getCheckboxes();
+        const allDone = allCheckboxes.filter(function (checkbox) {
+          return checkbox.checked;
+        }).length;
+
+        localCountNode.textContent = "Выполнено: " + activeDone + " из " + activeCheckboxes.length;
+        totalCountNode.textContent = "Всего выполнено: " + allDone + " из " + allCheckboxes.length;
+      }
+
+      function updatePanelBadge(sectionIndex) {
+        const panel = block.querySelector('[data-fd-panel-index="' + sectionIndex + '"]');
+        if (!panel) return;
+
+        const checkboxes = Array.from(panel.querySelectorAll(".fd-start-marking__checkbox"));
+        const done = checkboxes.filter(function (checkbox) {
+          return checkbox.checked;
+        }).length;
+
+        const badge = panel.querySelector(".fd-start-marking__local-count");
+        if (badge) badge.textContent = done + " из " + checkboxes.length;
+      }
+
+      function updateAllPanelBadges() {
+        fdStartMarkingData.forEach(function (_, sectionIndex) {
+          updatePanelBadge(sectionIndex);
+        });
+      }
+
+      function setActiveTab(index) {
+        activeTab = index;
+
+        const tabs = block.querySelectorAll(".fd-start-marking__tab");
+        const panels = block.querySelectorAll(".fd-start-marking__panel");
+
+        tabs.forEach(function (tab, tabIndex) {
+          const isActive = tabIndex === index;
+          tab.classList.toggle("fd-start-marking__tab--active", isActive);
+          tab.setAttribute("aria-selected", String(isActive));
+        });
+
+        panels.forEach(function (panel, panelIndex) {
+          panel.classList.toggle("fd-start-marking__panel--active", panelIndex === index);
+        });
+
+        updateCounts();
+      }
+
+      function render() {
+        tabsNode.innerHTML = "";
+        panelsNode.innerHTML = "";
+
+        fdStartMarkingData.forEach(function (section, sectionIndex) {
+          const tabId = "fd-start-marking-tab-" + blockIndex + "-" + sectionIndex;
+          const panelId = "fd-start-marking-panel-" + blockIndex + "-" + sectionIndex;
+
+          const tabButton = document.createElement("button");
+          tabButton.type = "button";
+          tabButton.className = "fd-start-marking__tab";
+          tabButton.textContent = section.tab;
+          tabButton.id = tabId;
+          tabButton.setAttribute("role", "tab");
+          tabButton.setAttribute("aria-controls", panelId);
+          tabButton.setAttribute("aria-selected", sectionIndex === 0 ? "true" : "false");
+
+          tabButton.addEventListener("click", function () {
+            setActiveTab(sectionIndex);
+          });
+
+          tabsNode.appendChild(tabButton);
+
+          const panel = document.createElement("div");
+          panel.className = "fd-start-marking__panel";
+          panel.id = panelId;
+          panel.setAttribute("role", "tabpanel");
+          panel.setAttribute("aria-labelledby", tabId);
+          panel.setAttribute("data-fd-panel-index", String(sectionIndex));
+
+          const card = document.createElement("div");
+          card.className = "fd-start-marking__card";
+
+          const head = document.createElement("div");
+          head.className = "fd-start-marking__card-head";
+
+          const title = document.createElement("h3");
+          title.className = "fd-start-marking__card-title";
+          title.textContent = section.title;
+
+          const count = document.createElement("div");
+          count.className = "fd-start-marking__local-count";
+          count.textContent = "0 из " + section.items.length;
+
+          head.appendChild(title);
+          head.appendChild(count);
+
+          const list = document.createElement("div");
+          list.className = "fd-start-marking__list";
+
+          section.items.forEach(function (item, itemIndex) {
+            const label = document.createElement("label");
+            label.className = "fd-start-marking__item";
+
+            const checkbox = document.createElement("input");
+            checkbox.className = "fd-start-marking__checkbox";
+            checkbox.type = "checkbox";
+            checkbox.setAttribute("data-fd-section", String(sectionIndex));
+            checkbox.setAttribute("data-fd-item", String(itemIndex));
+
+            const box = document.createElement("span");
+            box.className = "fd-start-marking__box";
+            box.setAttribute("aria-hidden", "true");
+
+            const text = document.createElement("span");
+            text.className = "fd-start-marking__text";
+            text.textContent = item;
+
+            checkbox.addEventListener("change", function () {
+              updateCounts();
+              updatePanelBadge(sectionIndex);
+            });
+
+            label.appendChild(checkbox);
+            label.appendChild(box);
+            label.appendChild(text);
+            list.appendChild(label);
+          });
+
+          card.appendChild(head);
+          card.appendChild(list);
+
+          if (section.note) {
+            const note = document.createElement("p");
+            note.className = "fd-start-marking__note";
+            note.textContent = section.note;
+            card.appendChild(note);
+          }
+
+          panel.appendChild(card);
+          panelsNode.appendChild(panel);
+        });
+
+        setActiveTab(0);
+        updateAllPanelBadges();
+      }
+
+      function buildPdfSource() {
+        const allCheckboxes = getCheckboxes();
+        const totalDone = allCheckboxes.filter(function (checkbox) {
+          return checkbox.checked;
+        }).length;
+
+        pdfSource.innerHTML = "";
+
+        const title = document.createElement("h2");
+        title.className = "fd-start-marking__pdf-title";
+        title.textContent = "Первые шаги к маркировке";
+
+        const subtitle = document.createElement("p");
+        subtitle.className = "fd-start-marking__pdf-subtitle";
+        subtitle.textContent = "Всего выполнено: " + totalDone + " из " + allCheckboxes.length;
+
+        pdfSource.appendChild(title);
+        pdfSource.appendChild(subtitle);
+
+        fdStartMarkingData.forEach(function (section, sectionIndex) {
+          const sectionCheckboxes = getPanelCheckboxes(sectionIndex);
+          const sectionDone = sectionCheckboxes.filter(function (checkbox) {
+            return checkbox.checked;
+          }).length;
+
+          const pdfSection = document.createElement("section");
+          pdfSection.className = "fd-start-marking__pdf-section";
+
+          const sectionTitle = document.createElement("h3");
+          sectionTitle.className = "fd-start-marking__pdf-section-title";
+          sectionTitle.textContent = section.tab + ". " + section.title;
+
+          const count = document.createElement("p");
+          count.className = "fd-start-marking__pdf-count";
+          count.textContent = "Выполнено: " + sectionDone + " из " + section.items.length;
+
+          const list = document.createElement("ul");
+          list.className = "fd-start-marking__pdf-list";
+
+          section.items.forEach(function (item, itemIndex) {
+            const checkbox = block.querySelector(
+              '.fd-start-marking__checkbox[data-fd-section="' + sectionIndex + '"][data-fd-item="' + itemIndex + '"]'
+            );
+
+            const li = document.createElement("li");
+            li.className = "fd-start-marking__pdf-item";
+
+            const mark = document.createElement("span");
+            mark.className = "fd-start-marking__pdf-mark";
+            mark.textContent = checkbox && checkbox.checked ? "✓" : "";
+
+            const text = document.createElement("span");
+            text.textContent = item;
+
+            li.appendChild(mark);
+            li.appendChild(text);
+            list.appendChild(li);
+          });
+
+          pdfSection.appendChild(sectionTitle);
+          pdfSection.appendChild(count);
+          pdfSection.appendChild(list);
+
+          if (section.note) {
+            const note = document.createElement("p");
+            note.className = "fd-start-marking__pdf-note";
+            note.textContent = section.note;
+            pdfSection.appendChild(note);
+          }
+
+          pdfSource.appendChild(pdfSection);
+        });
+      }
+
+      resetButton.addEventListener("click", function () {
+        getCheckboxes().forEach(function (checkbox) {
+          checkbox.checked = false;
+        });
+
+        updateAllPanelBadges();
+        updateCounts();
+      });
+
+      downloadButton.addEventListener("click", function () {
+        buildPdfSource();
+
+        if (window.html2canvas && window.jspdf && window.jspdf.jsPDF) {
+          html2canvas(pdfSource, {
+            scale: 2,
+            backgroundColor: "#ffffff"
+          }).then(function (canvas) {
+            const imgData = canvas.toDataURL("image/png");
+            const pdf = new window.jspdf.jsPDF("p", "mm", "a4");
+
+            const pageWidth = pdf.internal.pageSize.getWidth();
+            const pageHeight = pdf.internal.pageSize.getHeight();
+            const margin = 10;
+            const imgWidth = pageWidth - margin * 2;
+            const imgHeight = canvas.height * imgWidth / canvas.width;
+
+            let heightLeft = imgHeight;
+            let position = margin;
+
+            pdf.addImage(imgData, "PNG", margin, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight - margin * 2;
+
+            while (heightLeft > 0) {
+              pdf.addPage();
+              position = heightLeft - imgHeight + margin;
+              pdf.addImage(imgData, "PNG", margin, position, imgWidth, imgHeight);
+              heightLeft -= pageHeight - margin * 2;
+            }
+
+            pdf.save("pervye-shagi-k-markirovke.pdf");
+          });
+        } else {
+          window.print();
+        }
+      });
+
+      render();
+    });
+  })();
+</script>
