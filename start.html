@@ -182,14 +182,29 @@
     font-weight: 850;
   }
 
-  .fd-start-marking__list {
-    flex: 1 1 auto;
-    min-height: 0;
-    display: block;
-    padding: 0;
-    margin: 0;
-  }
+.fd-start-marking__list {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: block;
+  padding: 0 6px 0 0;
+  margin: 0;
+  overflow-y: auto;
+}
 
+.fd-start-marking__list::-webkit-scrollbar {
+  width: 7px;
+}
+
+.fd-start-marking__list::-webkit-scrollbar-track {
+  background: rgba(119, 64, 140, 0.08);
+  border-radius: 999px;
+}
+
+.fd-start-marking__list::-webkit-scrollbar-thumb {
+  background: rgba(119, 64, 140, 0.45);
+  border-radius: 999px;
+}
+  
   .fd-start-marking__item {
     position: relative;
     display: flex;
